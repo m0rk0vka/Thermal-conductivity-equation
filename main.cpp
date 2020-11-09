@@ -16,7 +16,7 @@ double estimationError(double *y, double *u, int N, int m) {
 }
 
 void sweepMethod(int N = 1000) {
-    double * k, q, fi, x, y, u;
+    double * k, q, fi, x, y;
     double * alf, bet, a, b, c;
     double h = 1.0 / N;
 
@@ -25,7 +25,6 @@ void sweepMethod(int N = 1000) {
     fi = new double [N + 1];
     x = new double [N + 1];
     y = new double [N + 1];
-    u = new double [N + 1];
 
     alf = new double [N + 2];
     bet = new double [N + 2];
@@ -64,4 +63,16 @@ void sweepMethod(int N = 1000) {
     for (int i = N - 1; i >= 0; i--) {
         y[i] = alf[i + 1] * y[i + 1] + bet[i + 1];
     }
+
+    delete [] k;
+    delete [] q;
+    delete [] fi;
+    delete [] x;
+    delete [] y;
+
+    delete [] alf;
+    delete [] bet;
+    delete [] a;
+    delete [] b;
+    delete [] c;
 }

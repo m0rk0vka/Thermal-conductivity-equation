@@ -8,45 +8,71 @@ void sweepMethod(double * y, int N);
 
 
 int main() {
+    double * u;
+    double * y;
+    double * y2;
+
     int N;
     double eps = 0.01, x0 = 0.5;
 
-    std::cout << "Please, enter N:" << std::endl;
+    std::cout << "Please, enter N: ";
     std::cin >> N;
 
-    while (N < 100000) {
-        double * u;
-        double * y;
+    int j = 0;
 
+    while (N < 100000) {
         u = new double [N + 1];
         y = new double [N + 1];
 
         realSolv(u, N, x0);
         sweepMethod(y, N);
 
-        for (int i = 0; i < N + 1; i++) {
-            std::cout << "u[i] = " << u[i] << ", y[i] = " << y[i] << std::endl;
-        }
+        if (j == 1) {
+            if (estimationError(y2, y, N) < eps) {
+                for (int i = 0; i < N + 1; i++) {
+                    std::cout << "x[" << i << "] = " << i * 1.0 / N << " , u[" << i << "] = " << u[i] << " , y[" <<
+                        i << "] = " << y[i] << " , delta = " << abs(u[i] - y[i]) << std::endl;
+                }
 
-        if (estimationError(u, y, N) < eps) {
-            break;
+                break;
+            } else {
+                delete [] y2;
+
+                y2 = new double [N + 1];
+
+                for (int i = 0; i < N + 1; i++) {
+                    y2[i] = y[i];
+                }
+
+                N = 2 * N;
+            }
         } else {
+            y2 = new double [N + 1];
+
+            for (int i = 0; i < N + 1; i++) {
+                y2[i] = y[i];
+            }
+
             N = 2 * N;
         }
 
         delete [] u;
         delete [] y;
+
+        j = 1;
     }
     return 0;
 }
 
 
-double estimationError(double * u, double * y, int N) {
+double estimationError(double * y2, double * y, int N) {
     double res;
 
+    N = N / 2;
+
     for (int i = 0; i < N + 1; i++) {
-        if (res < abs(u[2 * i] - y[i]) / 3) {
-            res = abs(u[2 * i] - y[i]);
+        if (res < abs(y[2 * i] - y2[i]) / 3) {
+            res = abs(y[2 * i] - y2[i]) / 3;
         }
     }
 
@@ -57,7 +83,7 @@ double estimationError(double * u, double * y, int N) {
 void realSolv(double * u, int N, double x0) {
     double * x;
 
-    double h = 1 / N;
+    double h = 1.0 / N;
     
     double k = x0 * x0 + 1;
     double q = x0;
@@ -66,8 +92,7 @@ void realSolv(double * u, int N, double x0) {
     double C = f / (q * ((sqrt(k * q) - 1) * exp(-sqrt(q / k)) - (sqrt(q / k) + 1) * exp(sqrt(q / k))));
     x = new double [N + 1];
 
-    x[0] = 0.0;
-    for (int i = 1; i < N + 1; i++) {
+    for (int i = 0; i < N + 1; i++) {
         x[i] = i * h;
     }
 
@@ -105,15 +130,17 @@ void sweepMethod(double * y, int N) {
     c = new double [N + 2];
 
     for (int i = 0; i < N + 1; i++) {
-        k[i] = q[i] = fi[i] = x[i] = 0.0;
-    }
-
-    for (int i = 1; i < N + 1; i++) {
         x[i] = i * h;
 
-        k[i] = x[i] * x[i] + 1;
-        q[i] = x[i];
-        fi[i] = exp(-x[i]);
+        if (i == 0) {
+            k[i] = 1.25;
+            q[i] = 0.5;
+            fi[i] = exp(-0.5);
+        } else {
+            k[i] = x[i] * x[i] + 1;
+            q[i] = x[i];
+            fi[i] = exp(-x[i]);
+        }
     }
 
     for (int i = 1; i < N; i++) {
@@ -122,15 +149,19 @@ void sweepMethod(double * y, int N) {
         c[i] = q[i] + 1 / (2 * h * h) * (k[i - 1] + 2 * k[i] + k[i + 1]);
     }
 
-    alf[1] = 0.0; // b[0] / c[0];
-    bet[1] = 0.0; // fi[0] / c[0];
+    alf[1] = (k[0] + k[1]) / (k[0] + k[1] + h * h * q[0]);
+    bet[1] = h * h * fi[0] / (k[0] + k[1] + h * h * q[0]);
 
     for (int i = 1; i < N; i++) {
         alf[i + 1] = b[i] / (c[i] - a[i] * alf[i]);
         bet[i + 1] = (fi[i] + alf[i] * bet[i]) / (c[i] - a[i] * alf[i]); 
     }
 
-    y[N] = -((1 + 0.5 * h * q[N]) * 1 - 0.5 * h * fi[N]);
+    double mu1 = 1 + 0.5 * h * q[N] + (k[N] + k[N - 1]) / (2 * h);
+    double hi2 = (k[N] + k[N - 1]) / (2 * h * mu1);
+
+    y[N] = (0.5 * h * fi[N] / mu1 + hi2 * bet[N]) / (1 - alf[N] * hi2);
+    //y[N] = -((1 + 0.5 * h * q[N]) * 1 - 0.5 * h * fi[N]);
 
     for (int i = N - 1; i >= 0; i--) {
         y[i] = alf[i + 1] * y[i + 1] + bet[i + 1];

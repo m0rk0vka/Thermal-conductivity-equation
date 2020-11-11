@@ -132,15 +132,13 @@ void sweepMethod(double * y, int N) {
     for (int i = 0; i < N + 1; i++) {
         x[i] = i * h;
 
-        if (i == 0) {
-            k[i] = 1.25;
-            q[i] = 0.5;
-            fi[i] = exp(-0.5);
-        } else {
-            k[i] = x[i] * x[i] + 1;
-            q[i] = x[i];
-            fi[i] = exp(-x[i]);
-        }
+        /*k[i] = x[i] * x[i] + 1;
+        q[i] = x[i];
+        fi[i] = exp(-x[i]);*/
+
+        k[i] = 1.25;
+        q[i] = 0.5;
+        fi[i] = exp(-0.5);
     }
 
     for (int i = 1; i < N; i++) {
@@ -154,14 +152,13 @@ void sweepMethod(double * y, int N) {
 
     for (int i = 1; i < N; i++) {
         alf[i + 1] = b[i] / (c[i] - a[i] * alf[i]);
-        bet[i + 1] = (fi[i] + alf[i] * bet[i]) / (c[i] - a[i] * alf[i]); 
+        bet[i + 1] = (fi[i] + a[i] * bet[i]) / (c[i] - a[i] * alf[i]); 
     }
 
     double mu1 = 1 + 0.5 * h * q[N] + (k[N] + k[N - 1]) / (2 * h);
     double hi2 = (k[N] + k[N - 1]) / (2 * h * mu1);
 
     y[N] = (0.5 * h * fi[N] / mu1 + hi2 * bet[N]) / (1 - alf[N] * hi2);
-    //y[N] = -((1 + 0.5 * h * q[N]) * 1 - 0.5 * h * fi[N]);
 
     for (int i = N - 1; i >= 0; i--) {
         y[i] = alf[i + 1] * y[i + 1] + bet[i + 1];

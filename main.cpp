@@ -13,7 +13,7 @@ int main() {
     int N, model;
 
     std::cout << "Hello!" << std::endl;
-    std::cout << "Please, choose which problem we will solve: model - 0, general - 1.\nEnter a number: " << std::endl;
+    std::cout << "Please, choose which problem we will solve: model - 0, general - 1.\nEnter a number: ";
     std::cin  >> model;
     std::cout << "Please, enter N: ";
     std::cin  >> N;

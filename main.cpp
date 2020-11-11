@@ -4,63 +4,28 @@
 
 double estimationError (double * u, double * y, int N);
 void realSolv(double * u, int N, double x0);
-void sweepMethod(double * y, int N);
+void sweepMethod(double * y, int N, double x0);
+void generalProblem(int N);
+void modelProblem(int N);
 
 
 int main() {
-    double * u;
-    double * y;
-    double * y2;
+    int N, model;
 
-    int N;
-    double eps = 0.01, x0 = 0.5;
-
+    std::cout << "Hello!" << std::endl;
+    std::cout << "Please, choose which problem we will solve: model - 0, general - 1.\nEnter a number: " << std::endl;
+    std::cin  >> model;
     std::cout << "Please, enter N: ";
-    std::cin >> N;
+    std::cin  >> N;
 
-    int j = 0;
-
-    while (N < 100000) {
-        u = new double [N + 1];
-        y = new double [N + 1];
-
-        realSolv(u, N, x0);
-        sweepMethod(y, N);
-
-        if (j == 1) {
-            if (estimationError(y2, y, N) < eps) {
-                for (int i = 0; i < N + 1; i++) {
-                    std::cout << "x[" << i << "] = " << i * 1.0 / N << " , u[" << i << "] = " << u[i] << " , y[" <<
-                        i << "] = " << y[i] << " , delta = " << abs(u[i] - y[i]) << std::endl;
-                }
-
-                break;
-            } else {
-                delete [] y2;
-
-                y2 = new double [N + 1];
-
-                for (int i = 0; i < N + 1; i++) {
-                    y2[i] = y[i];
-                }
-
-                N = 2 * N;
-            }
-        } else {
-            y2 = new double [N + 1];
-
-            for (int i = 0; i < N + 1; i++) {
-                y2[i] = y[i];
-            }
-
-            N = 2 * N;
-        }
-
-        delete [] u;
-        delete [] y;
-
-        j = 1;
+    if (model == 0) {
+        modelProblem(N);
+    } else if (model == 1) {
+        generalProblem(N);
+    } else {
+        std::cout << "When entering the first digit, choose between 0 and 1!\n Please, restart program!" << std::endl;
     }
+    
     return 0;
 }
 
@@ -104,7 +69,7 @@ void realSolv(double * u, int N, double x0) {
 }
 
 
-void sweepMethod(double * y, int N) {
+void sweepMethod(double * y, int N, double x0) {
     double * k;
     double * q;
     double * fi;
@@ -132,13 +97,15 @@ void sweepMethod(double * y, int N) {
     for (int i = 0; i < N + 1; i++) {
         x[i] = i * h;
 
-        /*k[i] = x[i] * x[i] + 1;
-        q[i] = x[i];
-        fi[i] = exp(-x[i]);*/
-
-        k[i] = 1.25;
-        q[i] = 0.5;
-        fi[i] = exp(-0.5);
+        if (x0 == 0.0) {
+            k[i] = x[i] * x[i] + 1;
+            q[i] = x[i];
+            fi[i] = exp(-x[i]);
+        } else {
+            k[i] = x0 * x0 + 1;
+            q[i] = x0;
+            fi[i] = exp(-x0);
+        }
     }
 
     for (int i = 1; i < N; i++) {
@@ -174,4 +141,114 @@ void sweepMethod(double * y, int N) {
     delete [] a;
     delete [] b;
     delete [] c;
+}
+
+
+void modelProblem(int N) {
+    double * u;
+    double * y;
+    double * y2;
+
+    int j = 0;
+
+    double eps = 0.01, x0 = 0.5;
+
+    while (N < 100000) {
+        u = new double [N + 1];
+        y = new double [N + 1];
+
+        realSolv(u, N, x0);
+        sweepMethod(y, N, x0);
+
+        if (j == 1) {
+            if (estimationError(y2, y, N) < eps) {
+                for (int i = 0; i < N + 1; i++) {
+                    std::cout << "x[" << i << "] = " << i * 1.0 / N << " , u[" << i << "] = " << u[i] << " , y[" <<
+                        i << "] = " << y[i] << " , delta = " << abs(u[i] - y[i]) << std::endl;
+                }
+
+                delete [] u;
+                delete [] y;
+                delete [] y2;
+
+                break;
+            } else {
+                delete [] y2;
+
+                y2 = new double [N + 1];
+
+                for (int i = 0; i < N + 1; i++) {
+                    y2[i] = y[i];
+                }
+
+                N = 2 * N;
+            }
+        } else {
+            y2 = new double [N + 1];
+
+            for (int i = 0; i < N + 1; i++) {
+                y2[i] = y[i];
+            }
+
+            N = 2 * N;
+        }
+
+        delete [] u;
+        delete [] y;
+
+        j = 1;
+    }
+}
+
+
+void generalProblem(int N) {
+    double * u;
+    double * y;
+    double * y2;
+
+    int j = 0;
+
+    double eps = 0.01, x0 = 0.0;
+
+    while (N < 100000) {
+        y = new double [N + 1];
+
+        sweepMethod(y, N, x0);
+
+        if (j == 1) {
+            if (estimationError(y2, y, N) < eps) {
+                for (int i = 0; i < N + 1; i++) {
+                    std::cout << "x[" << i << "] = " << i * 1.0 / N << " , y[" <<
+                        i << "] = " << y[i] << std::endl;
+                }
+
+                delete [] y;
+                delete [] y2;
+
+                break;
+            } else {
+                delete [] y2;
+
+                y2 = new double [N + 1];
+
+                for (int i = 0; i < N + 1; i++) {
+                    y2[i] = y[i];
+                }
+
+                N = 2 * N;
+            }
+        } else {
+            y2 = new double [N + 1];
+
+            for (int i = 0; i < N + 1; i++) {
+                y2[i] = y[i];
+            }
+
+            N = 2 * N;
+        }
+
+        delete [] y;
+
+        j = 1;
+    }
 }

@@ -89,7 +89,7 @@ void realSolv(double * u, int N, double x0) {
     double q = x0;
     double f = exp(-x0); 
 
-    double C = f / (q * ((sqrt(k * q) - 1) * exp(-sqrt(q / k)) - (sqrt(q / k) + 1) * exp(sqrt(q / k))));
+    double C = f / (q * ((sqrt(k * q) - 1) * exp(-sqrt(q / k)) - (sqrt(k * q) + 1) * exp(sqrt(q / k))));
     x = new double [N + 1];
 
     for (int i = 0; i < N + 1; i++) {
